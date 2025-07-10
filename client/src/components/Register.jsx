@@ -28,15 +28,32 @@ export default function Register() {
     setErrors({});
     setSuccessMessage("");
 
+    // --- Start of fix ---
+
+    // Create a payload with the common data.
+    const payload = {
+      account_type: formData.account_type,
+      email: formData.email,
+      password: formData.password,
+    };
+
+    // Add fields conditionally based on the account type.
+    if (formData.account_type === "Individual") {
+      payload.name = formData.name;
+    } else {
+      payload.contact_person = formData.contact_person;
+      payload.business_name = formData.business_name;
+    }
+
+    // --- End of fix ---
+
     try {
       const response = await axios.post(
         "http://my-auth-app.test/api/register",
-        formData
+        payload // Use the tailored payload
       );
       setSuccessMessage(response.data.message);
 
-      // On successful registration, redirect to the email verification page.
-      // We pass the email in the state so the next page can display it.
       navigate("/verify-email", { state: { email: formData.email } });
     } catch (error) {
       if (error.response && error.response.status === 422) {
