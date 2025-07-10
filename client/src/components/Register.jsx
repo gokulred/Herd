@@ -20,7 +20,8 @@ export default function Register() {
   });
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -32,21 +33,17 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     setErrors({});
-    setSuccessMessage("");
 
     try {
-      const response = await axios.post(
-        "http://my-auth-app.test/api/register",
-        formData
-      );
-
-      localStorage.setItem("user", JSON.stringify(response.data.user));
-      localStorage.setItem("token", response.data.token);
-
-      setSuccessMessage(
-        "Registration successful! Your account is pending approval by an administrator."
-      );
+      await axios.post("/api/register", formData);
+      navigate("/login", {
+        state: {
+          message:
+            "Registration successful! Your account is pending administrator approval.",
+        },
+      });
     } catch (error) {
       if (error.response && error.response.status === 422) {
         setErrors(error.response.data.errors);
@@ -54,6 +51,8 @@ export default function Register() {
         setErrors({ form: "An unexpected error occurred. Please try again." });
         console.error("An unexpected error occurred:", error);
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -383,9 +382,10 @@ export default function Register() {
           <div>
             <button
               type="submit"
-              className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              disabled={isSubmitting}
+              className="w-full px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
             >
-              Register
+              {isSubmitting ? "Submitting..." : "Register"}
             </button>
           </div>
         </form>

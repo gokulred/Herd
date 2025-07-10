@@ -21,21 +21,36 @@ class AuthController extends Controller
             'account_type' => ['required', 'in:Individual,Private Business,Organisation,Company,Institution'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-            'street' => ['nullable', 'string', 'max:255'],
-            'city' => ['nullable', 'string', 'max:255'],
-            'state' => ['nullable', 'string', 'max:255'],
-            'zip_code' => ['nullable', 'string', 'max:20'],
-            'phone' => ['nullable', 'string', 'max:20'],
+            'street' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'state' => ['required', 'string', 'max:255'],
+            'zip_code' => ['required', 'string', 'max:20'],
+            'phone' => ['required', 'string', 'max:20'],
+        ];
+
+        $userData = [
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+            'account_type' => $account_type,
+            'street' => $request->input('street'),
+            'city' => $request->input('city'),
+            'state' => $request->input('state'),
+            'zip_code' => $request->input('zip_code'),
+            'phone' => $request->input('phone'),
+            'status' => 'pending',
         ];
 
         if ($account_type === 'Individual') {
             $rules['first_name'] = ['required', 'string', 'max:255'];
             $rules['last_name'] = ['required', 'string', 'max:255'];
-            $name = $request->input('first_name') . ' ' . $request->input('last_name');
+            $userData['name'] = $request->input('first_name') . ' ' . $request->input('last_name');
+            $userData['first_name'] = $request->input('first_name');
+            $userData['last_name'] = $request->input('last_name');
         } else {
             $rules['contact_person'] = ['required', 'string', 'max:255'];
             $rules['business_name'] = ['required', 'string', 'max:255'];
-            $name = $request->input('contact_person');
+            $userData['name'] = $request->input('contact_person');
+            $userData['business_name'] = $request->input('business_name');
         }
 
         $validator = Validator::make($request->all(), $rules);
@@ -44,28 +59,8 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Create the user with a 'pending' status
-        $user = User::create([
-            'name' => $name,
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-            'account_type' => $account_type,
-            'status' => 'pending', // Default status for new registrations
-        ]);
+        User::create($userData);
 
-        // Create a profile if the account is not 'Individual'
-        if ($account_type !== 'Individual') {
-            $user->profile()->create([
-                'business_name' => $request->input('business_name'),
-                'street' => $request->input('street'),
-                'city' => $request->input('city'),
-                'state' => $request->input('state'),
-                'zip_code' => $request->input('zip_code'),
-                'phone' => $request->input('phone'),
-            ]);
-        }
-
-        // Return a success message indicating approval is needed
         return response()->json([
             'message' => 'Registration successful! Your account is pending approval by an administrator.',
         ], 201);
@@ -91,15 +86,14 @@ class AuthController extends Controller
 
         $user = auth()->user();
 
-        // **CRITICAL FIX**: Check the user's status
         if ($user->status !== 'approved') {
-            auth()->logout(); // Log out the user immediately
+            auth()->logout();
             return response()->json(['message' => 'Your account is not approved or has been blocked.'], 403);
         }
 
         return response()->json([
             'message' => 'Login successful!',
-            'user' => $user->load('profile'),
+            'user' => $user,
             'token' => $user->createToken('auth_token')->plainTextToken,
         ]);
     }

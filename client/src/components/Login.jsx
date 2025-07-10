@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
-  const [showPassword, setShowPassword] = useState(false); // State for password visibility
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location, navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,26 +32,28 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    setSuccessMessage(""); // Clear previous messages
 
     try {
-      const response = await axios.post(
-        "http://my-auth-app.test/api/login",
-        formData
-      );
-
+      const response = await axios.post("/api/login", formData);
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.token);
-
       navigate("/dashboard");
     } catch (err) {
-      if (
-        err.response &&
-        (err.response.status === 401 || err.response.status === 422)
-      ) {
-        setError(err.response.data.message || "Invalid credentials.");
+      // Improved error handling
+      if (err.response) {
+        // The server responded with an error status (4xx or 5xx)
+        setError(
+          err.response.data.message || "An error occurred. Please try again."
+        );
+      } else if (err.request) {
+        // The request was made but no response was received
+        setError(
+          "Could not connect to the server. Please check your network connection."
+        );
       } else {
+        // Something else happened while setting up the request
         setError("An unexpected error occurred. Please try again.");
-        console.error("An unexpected error occurred:", err);
       }
     }
   };
@@ -50,6 +62,13 @@ export default function Login() {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center">Login</h2>
+
+        {successMessage && (
+          <div className="p-4 text-green-700 bg-green-100 border-l-4 border-green-500">
+            {successMessage}
+          </div>
+        )}
+
         {error && (
           <div className="p-4 text-red-700 bg-red-100 border-l-4 border-red-500">
             {error}

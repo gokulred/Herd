@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
-import axios from "axios"; // Ensure you have axios installed: npm install axios
+import axios from "axios";
 
 export default function AdminDashboard() {
   const [users, setUsers] = useState([]);
   const [error, setError] = useState("");
 
   const fetchUsers = () => {
-    // We will use the centralized axios instance in the future, but for now, this is fine.
     const token = localStorage.getItem("token");
     axios
-      .get("http://my-auth-app.test/api/admin/users", {
+      .get("/api/admin/users", {
+        // Use relative URL
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -23,7 +23,6 @@ export default function AdminDashboard() {
       });
   };
 
-  // Fetch users when the component mounts
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -32,14 +31,13 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("token");
     axios
       .put(
-        `http://my-auth-app.test/api/admin/users/${id}/approve`,
+        `/api/admin/users/${id}/approve`, // Use relative URL
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       )
       .then(() => {
-        // Update the user's status in the local state for immediate feedback
         setUsers(
           users.map((user) =>
             user.id === id ? { ...user, status: "approved" } : user
@@ -52,7 +50,7 @@ export default function AdminDashboard() {
     const token = localStorage.getItem("token");
     axios
       .put(
-        `http://my-auth-app.test/api/admin/users/${id}/block`,
+        `/api/admin/users/${id}/block`, // Use relative URL
         {},
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -70,18 +68,18 @@ export default function AdminDashboard() {
   const handleDelete = (id) => {
     const token = localStorage.getItem("token");
     axios
-      .delete(`http://my-auth-app.test/api/admin/users/${id}`, {
+      .delete(`/api/admin/users/${id}`, {
+        // Use relative URL
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
-        // Remove the user from the local state
         setUsers(users.filter((user) => user.id !== id));
       });
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100 py-12">
-      <div className="w-full max-w-4xl p-8 space-y-6 bg-white rounded-lg shadow-md">
+      <div className="w-full max-w-6xl p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center">Admin Dashboard</h1>
         {error && (
           <div className="p-4 text-red-700 bg-red-100 border-l-4 border-red-500">
@@ -95,6 +93,9 @@ export default function AdminDashboard() {
                 <th className="py-2 px-4 text-left">Name</th>
                 <th className="py-2 px-4 text-left">Email</th>
                 <th className="py-2 px-4 text-left">Account Type</th>
+                <th className="py-2 px-4 text-left">Business Name</th>
+                <th className="py-2 px-4 text-left">Address</th>
+                <th className="py-2 px-4 text-left">Phone</th>
                 <th className="py-2 px-4 text-left">Status</th>
                 <th className="py-2 px-4 text-left">Actions</th>
               </tr>
@@ -105,6 +106,13 @@ export default function AdminDashboard() {
                   <td className="py-2 px-4">{user.name}</td>
                   <td className="py-2 px-4">{user.email}</td>
                   <td className="py-2 px-4">{user.account_type}</td>
+                  <td className="py-2 px-4">{user.business_name || "N/A"}</td>
+                  <td className="py-2 px-4">
+                    {`${user.street || ""}, ${user.city || ""}, ${
+                      user.state || ""
+                    } ${user.zip_code || ""}`}
+                  </td>
+                  <td className="py-2 px-4">{user.phone || "N/A"}</td>
                   <td className="py-2 px-4">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${

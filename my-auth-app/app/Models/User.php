@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -16,7 +17,6 @@ class User extends Authenticatable
      *
      * @var list<string>
      */
-
     protected $fillable = [
         'name',
         'first_name',
@@ -24,10 +24,16 @@ class User extends Authenticatable
         'email',
         'password',
         'account_type',
+        'business_name',
+        'street',
+        'city',
+        'state',
+        'zip_code',
+        'phone',
         'is_admin',
         'status',
     ];
-    //...
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -38,12 +44,6 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-
-
-    public function profile()
-    {
-        return $this->hasOne(Profile::class);
-    }
     /**
      * Get the attributes that should be cast.
      *

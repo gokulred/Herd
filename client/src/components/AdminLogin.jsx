@@ -24,9 +24,8 @@ export default function AdminLogin() {
     setError("");
 
     try {
-      // **IMPORTANT**: Post to the new admin login endpoint
       const response = await axios.post(
-        "http://my-auth-app.test/api/admin/login",
+        "/api/admin/login", // Use relative URL
         formData
       );
 

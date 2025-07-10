@@ -12,12 +12,18 @@ return new class extends Migration {
     {
         Schema::create('users', function (Blueprint $table) {
             $table->id();
-            $table->string('name')->nullable(); // Set to nullable
-            $table->string('first_name')->nullable(); // Add first_name
-            $table->string('last_name')->nullable(); // Add last_name
+            $table->string('name')->nullable();
+            $table->string('first_name')->nullable();
+            $table->string('last_name')->nullable();
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('account_type', ['Individual', 'Private Business', 'Organisation', 'Company', 'Institution']);
+            $table->string('business_name')->nullable(); // For business accounts
+            $table->string('street')->nullable();
+            $table->string('city')->nullable();
+            $table->string('state')->nullable();
+            $table->string('zip_code')->nullable();
+            $table->string('phone')->nullable();
             $table->boolean('is_admin')->default(false);
             $table->string('status')->default('pending'); // pending, approved, blocked
             $table->rememberToken();
