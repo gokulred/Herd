@@ -10,53 +10,44 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
-    // In my-auth-app/app/Http/Controllers/API/AuthController.php
-
-    // In my-auth-app/app/Http/Controllers/API/AuthController.php
-
     public function register(Request $request)
     {
-        // --- Start of a more robust fix ---
+        $account_type = $request->input('account_type');
 
-        // Primary validation for common fields
-        $primaryValidator = Validator::make($request->all(), [
+        $rules = [
             'account_type' => ['required', 'in:Individual,Private Business,Organisation,Company,Institution'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8'],
-        ]);
+            'street' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:255'],
+            'zip_code' => ['nullable', 'string', 'max:20'],
+            'phone' => ['nullable', 'string', 'max:20'],
+        ];
 
-        if ($primaryValidator->fails()) {
-            return response()->json(['errors' => $primaryValidator->errors()], 422);
-        }
-
-        // Secondary, conditional validation
-        $account_type = $request->input('account_type');
         if ($account_type === 'Individual') {
-            $secondaryValidator = Validator::make($request->all(), [
-                'name' => ['required', 'string', 'max:255'],
-            ]);
+            $rules['first_name'] = ['required', 'string', 'max:255'];
+            $rules['last_name'] = ['required', 'string', 'max:255'];
+            $name = $request->input('first_name') . ' ' . $request->input('last_name');
         } else {
-            $secondaryValidator = Validator::make($request->all(), [
-                'contact_person' => ['required', 'string', 'max:255'],
-                'business_name' => ['required', 'string', 'max:255'],
-            ]);
+            $rules['contact_person'] = ['required', 'string', 'max:255'];
+            $rules['business_name'] = ['required', 'string', 'max:255'];
+            $name = $request->input('contact_person');
         }
 
-        if ($secondaryValidator->fails()) {
-            return response()->json(['errors' => $secondaryValidator->errors()], 422);
+        $validator = Validator::make($request->all(), $rules);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Create the user
         $user = User::create([
-            'name' => $request->input('name') ?? $request->input('contact_person'),
+            'name' => $name,
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
             'account_type' => $account_type,
         ]);
 
-        // --- End of a more robust fix ---
-
-        // If it's a business/org, create the profile entry
         if ($account_type !== 'Individual') {
             $user->profile()->create([
                 'business_name' => $request->input('business_name'),
@@ -68,11 +59,17 @@ class AuthController extends Controller
             ]);
         }
 
+        // Log the new user in immediately
+        auth()->login($user);
+
+        // Return the user and a new token
         return response()->json([
             'message' => 'Registration successful!',
-            'user' => $user->load('profile')
+            'user' => $user->load('profile'),
+            'token' => $user->createToken('auth_token')->plainTextToken,
         ], 201);
     }
+
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -92,7 +89,7 @@ class AuthController extends Controller
 
         return response()->json([
             'message' => 'Login successful!',
-            'user' => $user,
+            'user' => $user->load('profile'),
             'token' => $user->createToken('auth_token')->plainTextToken,
         ]);
     }
