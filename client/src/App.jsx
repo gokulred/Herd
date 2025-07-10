@@ -2,23 +2,63 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
+import AdminDashboard from "./components/AdminDashboard"; // 1. Import the new component
+
+// 2. A component to protect routes for logged-in users
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    // If no token, redirect to login
+    return <Navigate to="/login" />;
+  }
+  return children;
+};
+
+// 3. A component to protect routes for admins only
+const AdminRoute = ({ children }) => {
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = localStorage.getItem("token");
+
+  if (!token || !user?.is_admin) {
+    // If no token or user is not an admin, redirect to the regular dashboard
+    return <Navigate to="/dashboard" />;
+  }
+  return children;
+};
 
 function App() {
-  // This component now acts as the main router for your application.
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes that anyone can access */}
+        {/* Public routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* This is a placeholder for a protected route. We'll secure it later. */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        {/* Protected User Dashboard Route */}
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        {/* Redirect any other path to the login page by default */}
+        {/* Protected Admin-Only Route */}
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+
+        {/* Redirect any other path to the login page */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
   );
 }
+
 export default App;

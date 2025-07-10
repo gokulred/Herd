@@ -1,30 +1,26 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // 1. Make sure Link is imported
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Check for user data in local storage
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      // If no user data, redirect to login
       navigate("/login");
     }
   }, [navigate]);
 
   const handleLogout = () => {
-    // Clear local storage and redirect to login
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/login");
   };
 
   if (!user) {
-    // Render a loading state or nothing while user data is being loaded
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
         <p>Loading...</p>
@@ -39,6 +35,21 @@ export default function Dashboard() {
         <p className="text-center text-gray-700">
           Welcome, <span className="font-semibold">{user.name}!</span>
         </p>
+
+        {/* --- This is the new section --- */}
+        {/* 2. Conditionally render the link to the admin dashboard */}
+        {user.is_admin && (
+          <div className="text-center">
+            <Link
+              to="/admin"
+              className="font-medium text-indigo-600 hover:text-indigo-500"
+            >
+              Go to Admin Dashboard
+            </Link>
+          </div>
+        )}
+        {/* --- End of new section --- */}
+
         <p className="text-center text-gray-500">Your email is {user.email}.</p>
         <button
           onClick={handleLogout}

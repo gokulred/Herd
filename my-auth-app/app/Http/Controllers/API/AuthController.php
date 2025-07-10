@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    /**
+     * Register a new user.
+     */
     public function register(Request $request)
     {
         $account_type = $request->input('account_type');
@@ -41,13 +44,16 @@ class AuthController extends Controller
             return response()->json(['errors' => $validator->errors()], 422);
         }
 
+        // Create the user with a 'pending' status
         $user = User::create([
             'name' => $name,
             'email' => $request->input('email'),
             'password' => Hash::make($request->input('password')),
             'account_type' => $account_type,
+            'status' => 'pending', // Default status for new registrations
         ]);
 
+        // Create a profile if the account is not 'Individual'
         if ($account_type !== 'Individual') {
             $user->profile()->create([
                 'business_name' => $request->input('business_name'),
@@ -59,17 +65,15 @@ class AuthController extends Controller
             ]);
         }
 
-        // Log the new user in immediately
-        auth()->login($user);
-
-        // Return the user and a new token
+        // Return a success message indicating approval is needed
         return response()->json([
-            'message' => 'Registration successful!',
-            'user' => $user->load('profile'),
-            'token' => $user->createToken('auth_token')->plainTextToken,
+            'message' => 'Registration successful! Your account is pending approval by an administrator.',
         ], 201);
     }
 
+    /**
+     * Authenticate the user and return a token.
+     */
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -85,7 +89,13 @@ class AuthController extends Controller
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
-        $user = User::where('email', $request->email)->first();
+        $user = auth()->user();
+
+        // **CRITICAL FIX**: Check the user's status
+        if ($user->status !== 'approved') {
+            auth()->logout(); // Log out the user immediately
+            return response()->json(['message' => 'Your account is not approved or has been blocked.'], 403);
+        }
 
         return response()->json([
             'message' => 'Login successful!',

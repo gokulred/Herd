@@ -18,6 +18,8 @@ return new class extends Migration {
             $table->string('email')->unique();
             $table->string('password');
             $table->enum('account_type', ['Individual', 'Private Business', 'Organisation', 'Company', 'Institution']);
+            $table->boolean('is_admin')->default(false);
+            $table->string('status')->default('pending'); // pending, approved, blocked
             $table->rememberToken();
             $table->timestamps();
         });

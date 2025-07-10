@@ -44,9 +44,9 @@ export default function Register() {
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.token);
 
-      setSuccessMessage(response.data.message);
-
-      navigate("/dashboard");
+      setSuccessMessage(
+        "Registration successful! Your account is pending approval by an administrator."
+      );
     } catch (error) {
       if (error.response && error.response.status === 422) {
         setErrors(error.response.data.errors);
