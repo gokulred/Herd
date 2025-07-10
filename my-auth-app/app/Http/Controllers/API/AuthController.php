@@ -45,6 +45,8 @@ class AuthController extends Controller
             ]);
         }
 
+        $user->sendEmailVerificationNotification();
+
         return response()->json([
             'message' => 'Registration successful!',
             'user' => $user->load('profile') // load the profile relationship

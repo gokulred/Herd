@@ -1,7 +1,9 @@
 import { useState } from "react";
 import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
 
-export default function Register({ onSwitchToLogin }) {
+export default function Register() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     account_type: "Individual",
     email: "",
@@ -32,10 +34,15 @@ export default function Register({ onSwitchToLogin }) {
         formData
       );
       setSuccessMessage(response.data.message);
+
+      // On successful registration, redirect to the email verification page.
+      // We pass the email in the state so the next page can display it.
+      navigate("/verify-email", { state: { email: formData.email } });
     } catch (error) {
       if (error.response && error.response.status === 422) {
         setErrors(error.response.data.errors);
       } else {
+        setErrors({ form: "An unexpected error occurred. Please try again." });
         console.error("An unexpected error occurred:", error);
       }
     }
@@ -45,9 +52,9 @@ export default function Register({ onSwitchToLogin }) {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
         <h2 className="text-2xl font-bold text-center">Register</h2>
-        {successMessage && (
-          <div className="p-4 text-green-700 bg-green-100 border-l-4 border-green-500">
-            {successMessage}
+        {errors.form && (
+          <div className="p-4 text-red-700 bg-red-100 border-l-4 border-red-500">
+            {errors.form}
           </div>
         )}
         <form onSubmit={handleSubmit} className="space-y-6">
@@ -182,12 +189,12 @@ export default function Register({ onSwitchToLogin }) {
         </form>
         <p className="text-sm text-center text-gray-600">
           Already have an account?{" "}
-          <button
-            onClick={onSwitchToLogin}
+          <Link
+            to="/login"
             className="font-medium text-indigo-600 hover:text-indigo-500"
           >
             Login here
-          </button>
+          </Link>
         </p>
       </div>
     </div>
