@@ -32,14 +32,8 @@ export default function Login() {
       localStorage.setItem("user", JSON.stringify(response.data.user));
       localStorage.setItem("token", response.data.token);
 
-      // Check if the user's email is verified
-      if (response.data.user.email_verified_at) {
-        // If verified, navigate to the dashboard
-        navigate("/dashboard");
-      } else {
-        // If not verified, navigate to the verification page
-        navigate("/verify-email", { state: { email: formData.email } });
-      }
+      // If not verified, navigate to the verification page
+      navigate("/dashboard");
     } catch (err) {
       if (
         err.response &&

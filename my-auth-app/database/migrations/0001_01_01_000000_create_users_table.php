@@ -14,7 +14,6 @@ return new class extends Migration {
             $table->id();
             $table->string('name'); // We'll use this for the "Contact Person" or Individual's name
             $table->string('email')->unique();
-            $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->enum('account_type', ['Individual', 'Private Business', 'Organisation', 'Company', 'Institution']);
             $table->rememberToken();

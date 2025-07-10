@@ -54,7 +54,7 @@ export default function Register() {
       );
       setSuccessMessage(response.data.message);
 
-      navigate("/verify-email", { state: { email: formData.email } });
+      navigate("/dashboard");
     } catch (error) {
       if (error.response && error.response.status === 422) {
         setErrors(error.response.data.errors);
