@@ -1,25 +1,34 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // 1. Make sure Link is imported
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
+    // On component mount, try to get the user data from local storage.
     const storedUser = localStorage.getItem("user");
+
     if (storedUser) {
+      // If user data exists, parse it and set it in the component's state.
       setUser(JSON.parse(storedUser));
     } else {
+      // If no user data is found, the user is not authenticated. Redirect to the login page.
       navigate("/login");
     }
-  }, [navigate]);
+  }, [navigate]); // The dependency array ensures this effect runs only once on mount.
 
+  /**
+   * Handles the logout process by clearing user data from local storage
+   * and redirecting to the login page.
+   */
   const handleLogout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     navigate("/login");
   };
 
+  // While the user state is being set, display a loading message.
   if (!user) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -28,6 +37,7 @@ export default function Dashboard() {
     );
   }
 
+  // Once the user is loaded, display the dashboard content.
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-md">
@@ -35,21 +45,6 @@ export default function Dashboard() {
         <p className="text-center text-gray-700">
           Welcome, <span className="font-semibold">{user.name}!</span>
         </p>
-
-        {/* --- This is the new section --- */}
-        {/* 2. Conditionally render the link to the admin dashboard */}
-        {user.is_admin && (
-          <div className="text-center">
-            <Link
-              to="/admin"
-              className="font-medium text-indigo-600 hover:text-indigo-500"
-            >
-              Go to Admin Dashboard
-            </Link>
-          </div>
-        )}
-        {/* --- End of new section --- */}
-
         <p className="text-center text-gray-500">Your email is {user.email}.</p>
         <button
           onClick={handleLogout}

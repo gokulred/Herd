@@ -2,26 +2,24 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
-import AdminDashboard from "./components/AdminDashboard"; // 1. Import the new component
+import AdminDashboard from "./components/AdminDashboard";
+import AdminLogin from "./components/AdminLogin"; // Import the new component
 
-// 2. A component to protect routes for logged-in users
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   if (!token) {
-    // If no token, redirect to login
     return <Navigate to="/login" />;
   }
   return children;
 };
 
-// 3. A component to protect routes for admins only
 const AdminRoute = ({ children }) => {
-  const user = JSON.parse(localStorage.getItem("user"));
   const token = localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user"));
 
   if (!token || !user?.is_admin) {
-    // If no token or user is not an admin, redirect to the regular dashboard
-    return <Navigate to="/dashboard" />;
+    // If not an authenticated admin, redirect to admin login page
+    return <Navigate to="/admin/login" />;
   }
   return children;
 };
@@ -30,9 +28,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public routes */}
+        {/* Public User Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+
+        {/* Public Admin Route */}
+        <Route path="/admin/login" element={<AdminLogin />} />
 
         {/* Protected User Dashboard Route */}
         <Route
@@ -54,7 +55,7 @@ function App() {
           }
         />
 
-        {/* Redirect any other path to the login page */}
+        {/* Redirect any other path to the user login page */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </BrowserRouter>
