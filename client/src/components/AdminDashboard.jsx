@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import ActivityDashboard from "./ActivityDashboard";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -171,6 +172,7 @@ export default function AdminDashboard() {
           </div>
         </header>
         <main className="flex-1 overflow-x-auto overflow-y-auto bg-gray-50 p-8">
+          <ActivityDashboard />
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-xl font-semibold mb-4">User Management</h2>
             <div className="flex flex-col md:flex-row justify-between items-center mb-4 gap-4">
