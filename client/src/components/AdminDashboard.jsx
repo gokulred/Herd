@@ -2,14 +2,17 @@ import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import ActivityDashboard from "./ActivityDashboard";
+import ModifyRolesModal from "./ModifyRolesModal"; // We will create this next
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]); // State for all available roles
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [selectedUser, setSelectedUser] = useState(null);
+  const [userForRoles, setUserForRoles] = useState(null); // State for role modification modal
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const fetchUsers = useCallback(() => {
@@ -38,13 +41,30 @@ export default function AdminDashboard() {
       });
   }, [searchTerm, statusFilter]);
 
+  const fetchAllRoles = useCallback(() => {
+    const token = localStorage.getItem("token");
+    axios
+      .get("/api/admin/roles", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((response) => {
+        setRoles(response.data);
+      })
+      .catch((error) => {
+        setError("Could not fetch roles.");
+        console.error("Error fetching roles:", error);
+      });
+  }, []);
+
   useEffect(() => {
     const fetchTimeout = setTimeout(() => {
       fetchUsers();
     }, 300); // Debounce API calls
 
+    fetchAllRoles();
+
     return () => clearTimeout(fetchTimeout);
-  }, [fetchUsers]);
+  }, [fetchUsers, fetchAllRoles]);
 
   const handleAction = (action, id) => {
     const token = localStorage.getItem("token");
@@ -222,16 +242,21 @@ export default function AdminDashboard() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {["Name", "Email", "Phone", "Status", "Actions"].map(
-                      (head) => (
-                        <th
-                          key={head}
-                          className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                        >
-                          {head}
-                        </th>
-                      )
-                    )}
+                    {[
+                      "Name",
+                      "Roles",
+                      "Email",
+                      "Phone",
+                      "Status",
+                      "Actions",
+                    ].map((head) => (
+                      <th
+                        key={head}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        {head}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -240,6 +265,16 @@ export default function AdminDashboard() {
                       <tr key={user.id}>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {user.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {user.roles.map((role) => (
+                            <span
+                              key={role.id}
+                              className="mr-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                            >
+                              {role.name}
+                            </span>
+                          ))}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {user.email}
@@ -263,6 +298,12 @@ export default function AdminDashboard() {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button
+                            onClick={() => setUserForRoles(user)}
+                            className="text-blue-600 hover:text-blue-900 mr-3"
+                          >
+                            Modify Roles
+                          </button>
                           <button
                             onClick={() => handleViewUser(user)}
                             className="text-gray-600 hover:text-gray-900 mr-3"
@@ -297,7 +338,7 @@ export default function AdminDashboard() {
                   ) : (
                     <tr>
                       <td
-                        colSpan="5"
+                        colSpan="6"
                         className="text-center py-4 text-sm text-gray-500"
                       >
                         No users found.
@@ -354,6 +395,14 @@ export default function AdminDashboard() {
             </div>
           </div>
         </div>
+      )}
+      {userForRoles && (
+        <ModifyRolesModal
+          user={userForRoles}
+          allRoles={roles}
+          onClose={() => setUserForRoles(null)}
+          onRolesUpdated={fetchUsers}
+        />
       )}
     </div>
   );

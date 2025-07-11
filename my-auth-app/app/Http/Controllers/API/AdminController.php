@@ -10,8 +10,7 @@ class AdminController extends Controller
 {
     public function index(Request $request)
     {
-        $query = User::where('is_admin', false);
-
+        $query = User::with('roles')->where('is_admin', false);
         // Search filter for name or email
         if ($search = $request->query('search')) {
             $query->where(function ($q) use ($search) {
