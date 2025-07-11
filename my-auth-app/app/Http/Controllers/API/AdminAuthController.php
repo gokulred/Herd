@@ -32,6 +32,10 @@ class AdminAuthController extends Controller
             return response()->json(['message' => 'Access denied. Not an administrator.'], 403);
         }
 
+        $user->last_login_at = now();
+        $user->last_login_ip = $request->ip();
+        $user->save();
+
         return response()->json([
             'message' => 'Admin login successful!',
             'user' => $user,
