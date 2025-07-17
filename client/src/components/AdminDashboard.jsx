@@ -48,10 +48,14 @@ export default function AdminDashboard() {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
+        console.log("Roles fetched:", response.data); // Debug log
         setRoles(response.data);
       })
       .catch((error) => {
-        setError("Could not fetch roles.");
+        setError(
+          "Could not fetch roles. " +
+            (error.response ? error.response.data.message : error.message)
+        );
         console.error("Error fetching roles:", error);
       });
   }, []);
