@@ -4,6 +4,10 @@ import { useNavigate } from "react-router-dom";
 import ActivityDashboard from "./ActivityDashboard";
 import ModifyRolesModal from "./ModifyRolesModal"; // We will create this next
 
+// Set axios base URL for all requests
+axios.defaults.baseURL = "http://my-auth-app.test";
+axios.defaults.withCredentials = true;
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);

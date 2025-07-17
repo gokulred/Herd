@@ -1,41 +1,48 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  Outlet,
+} from "react-router-dom";
 import Login from "./components/Login";
 import Register from "./components/Register";
 import Dashboard from "./components/Dashboard";
 import AdminDashboard from "./components/AdminDashboard";
-import AdminLogin from "./components/AdminLogin"; // Import the new component
+import AdminLogin from "./components/AdminLogin";
+import HomePage from "./Pages/HomePage";
+import EventPage from "./Pages/EventPage";
+import PublicLayout from "./Layouts/PublicLayout";
 
+// This component protects routes that require a user to be logged in.
 const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token");
-  if (!token) {
-    return <Navigate to="/login" />;
-  }
-  return children;
+  return token ? children : <Navigate to="/login" />;
 };
 
+// This component protects routes that require an admin user.
 const AdminRoute = ({ children }) => {
   const token = localStorage.getItem("token");
   const user = JSON.parse(localStorage.getItem("user"));
-
-  if (!token || !user?.is_admin) {
-    // If not an authenticated admin, redirect to admin login page
-    return <Navigate to="/admin/login" />;
-  }
-  return children;
+  return token && user?.is_admin ? children : <Navigate to="/admin/login" />;
 };
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public User Routes */}
+        {/* --- Public Routes --- */}
+        <Route path="/" element={<PublicLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="events/:id" element={<EventPage />} />
+        </Route>
+
+        {/* --- Auth Routes (Standalone) --- */}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-        {/* Public Admin Route */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Protected User Dashboard Route */}
+        {/* --- Protected User Dashboard --- */}
         <Route
           path="/dashboard"
           element={
@@ -45,7 +52,7 @@ function App() {
           }
         />
 
-        {/* Protected Admin-Only Route */}
+        {/* --- Protected Admin Dashboard --- */}
         <Route
           path="/admin"
           element={
@@ -55,8 +62,8 @@ function App() {
           }
         />
 
-        {/* Redirect any other path to the user login page */}
-        <Route path="*" element={<Navigate to="/login" />} />
+        {/* Fallback route - maybe redirect to home or a 404 page */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </BrowserRouter>
   );

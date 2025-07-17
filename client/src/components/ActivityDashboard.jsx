@@ -1,6 +1,10 @@
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 
+// Set axios base URL for all requests
+axios.defaults.baseURL = "http://my-auth-app.test";
+axios.defaults.withCredentials = true;
+
 export default function ActivityDashboard() {
   const [stats, setStats] = useState({
     total: 0,

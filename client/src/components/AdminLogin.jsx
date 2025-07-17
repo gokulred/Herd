@@ -2,6 +2,10 @@ import { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
+// Set axios base URL for all requests
+axios.defaults.baseURL = "http://my-auth-app.test";
+axios.defaults.withCredentials = true;
+
 export default function AdminLogin() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -24,6 +28,8 @@ export default function AdminLogin() {
     setError("");
 
     try {
+      // Always get CSRF cookie before login
+      await axios.get("/sanctum/csrf-cookie");
       const response = await axios.post(
         "/api/admin/login", // Use relative URL
         formData

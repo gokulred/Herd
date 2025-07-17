@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 
+// Set axios base URL for all requests
+axios.defaults.baseURL = "http://my-auth-app.test";
+axios.defaults.withCredentials = true;
+
 export default function ModifyRolesModal({
   user,
   allRoles,
