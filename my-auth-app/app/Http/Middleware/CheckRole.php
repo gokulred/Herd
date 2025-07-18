@@ -19,12 +19,10 @@ class CheckRole
     {
         $user = $request->user();
 
-        // --- Start of Fix ---
         // The check now correctly uses the $role variable passed to the middleware.
         if ($user && $user->roles()->where('name', $role)->exists()) {
             return $next($request);
         }
-        // --- End of Fix ---
 
         return response()->json(['message' => 'Unauthorized. You do not have the required role.'], 403);
     }

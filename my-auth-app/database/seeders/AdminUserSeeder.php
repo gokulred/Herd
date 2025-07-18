@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class AdminUserSeeder extends Seeder
@@ -15,8 +16,7 @@ class AdminUserSeeder extends Seeder
      */
     public function run()
     {
-        // --- Start of Fix ---
-        // Use firstOrCreate to prevent duplicate entries
+        // Use firstOrCreate to prevent duplicate admin users
         $user = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
@@ -28,13 +28,12 @@ class AdminUserSeeder extends Seeder
             ]
         );
 
-        // Get the "Admin" role
-        $adminRole = \App\Models\Role::where('name', 'Admin')->first();
+        // Get the "Admin" role, or create it if it doesn't exist
+        $adminRole = Role::firstOrCreate(['name' => 'Admin']);
 
         // Attach the role to the user if not already attached
-        if ($adminRole && !$user->roles->contains($adminRole->id)) {
+        if (!$user->roles->contains($adminRole->id)) {
             $user->roles()->attach($adminRole->id);
         }
-        // --- End of Fix ---
     }
 }
